@@ -4,7 +4,7 @@ const app = express();
 // dotenvパッケージを読み込み
 require('dotenv').config();
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -19,31 +19,31 @@ const shuffleArray = (array) => {
 
 // 席替えAPI
 app.post("/shuffle", (req, res) => {
-    console.log("Received /shuffle request with body:", req.body);
-
-    const { students, rows, cols, forbiddenPairs } = req.body;
+    const { students, rows, cols, forbiddenPairs, fixedSeats } = req.body;
     let studentNumbers = Array.from({ length: students }, (_, i) => i + 1);
     let shuffled = shuffleArray(studentNumbers);
 
     console.log("Shuffled student numbers:", shuffled);
 
     let maxSeats = rows * cols;
-    let seating = [];
+    let seating = Array.from({ length: rows }, () => Array(cols).fill(null));
     let overflow = [];
     let pairwiseConflict = false;
 
-    // 席割り
+    // 固定席を配置
+    fixedSeats.forEach(seat => {
+        seating[seat.row][seat.col] = seat.student;
+        shuffled = shuffled.filter(student => student !== seat.student);
+    });
+
+    // 残りの席をシャッフル
     let index = 0;
     for (let r = 0; r < rows; r++) {
-        let row = [];
         for (let c = 0; c < cols; c++) {
-            if (index < maxSeats) {
-                row.push(shuffled[index++]);
-            } else {
-                row.push(null);
+            if (!seating[r][c] && index < shuffled.length) {
+                seating[r][c] = shuffled[index++];
             }
         }
-        seating.push(row);
     }
 
     console.log("Seating arrangement:", seating);
@@ -59,10 +59,19 @@ app.post("/shuffle", (req, res) => {
         }
     }
 
-    console.log("Pairwise conflict:", pairwiseConflict);
+    for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows - 1; r++) {  // 縦の隣接をチェック
+            const pair = [seating[r][c], seating[r + 1][c]];
+            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                pairwiseConflict = true;
+                break;
+            }
+        }
+        if (pairwiseConflict) break;
+    }
 
     // 結果を返す
-    res.json({ seating, overflow, pairwiseConflict });
+    res.status(200).json({ seating, overflow, pairwiseConflict });
 });
 
 app.listen(PORT, () => {
