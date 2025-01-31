@@ -26,6 +26,9 @@ const app = Vue.createApp({
             return Array.from({ length: this.cols }, (_, i) => i);
         }
     },
+    mounted() {
+        this.shuffleSeats();
+    },
     methods: {
         // 隣に座らせたくないペアを追加します
         addForbiddenPair() {
