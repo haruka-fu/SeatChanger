@@ -1,4 +1,5 @@
 const express = require("express");
+const puppeteer = require("puppeteer");
 const app = express();
 
 // dotenvパッケージを読み込み
@@ -68,6 +69,26 @@ app.post("/shuffle", (req, res) => {
 
     // 結果を返す
     res.status(200).json({ seating, overflow, pairwiseConflict });
+});
+
+// 画像生成API
+app.post("/generate-image", async (req, res) => {
+    const { htmlContent } = req.body;
+
+    try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(htmlContent);
+        const element = await page.$('#seat-chart'); // 特定の要素を選択
+        const screenshotBuffer = await element.screenshot({ type: 'png' });
+        await browser.close();
+
+        res.setHeader('Content-Type', 'image/png');
+        res.send(screenshotBuffer);
+    } catch (error) {
+        console.error('Error generating image:', error);
+        res.status(500).send('Error generating image');
+    }
 });
 
 app.listen(PORT, () => {

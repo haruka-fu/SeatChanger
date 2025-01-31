@@ -191,6 +191,49 @@ const app = Vue.createApp({
                 link.download = `seat-chart_${formattedDate}.png`;
                 link.click();
             });
+        },
+        // puppeteerを使用して画像を生成するメソッドを追加
+        async generateImage() {
+            const seatChartElement = document.querySelector('#seat-chart'); // 要素を取得
+            if (!seatChartElement) {
+                console.error('seat-chart要素が見つかりません');
+                return;
+            }
+
+            const htmlContent = seatChartElement.outerHTML;
+
+            const response = await fetch("/generate-image", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ htmlContent })
+            });
+
+            if (!response.ok) {
+                console.error('画像生成中にエラーが発生しました');
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const now = new Date();
+            const formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+            link.href = url;
+            link.download = `seat-chart_${formattedDate}.png`;
+
+            // 画像形式を確認
+            const image = new Image();
+            image.onload = function () {
+                link.click();
+                URL.revokeObjectURL(url); // URLを解放
+            };
+            image.onerror = function () {
+                console.error('このファイルはサポートされていない形式のようです');
+                URL.revokeObjectURL(url); // URLを解放
+            };
+            image.src = url;
         }
     }
 });
