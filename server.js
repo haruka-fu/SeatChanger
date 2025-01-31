@@ -23,6 +23,8 @@ app.post("/shuffle", (req, res) => {
     let studentNumbers = Array.from({ length: students }, (_, i) => i + 1);
     let shuffled = shuffleArray(studentNumbers);
 
+    console.log("Shuffled student numbers:", shuffled);
+
     let maxSeats = rows * cols;
     let seating = Array.from({ length: rows }, () => Array(cols).fill(null));
     let overflow = [];
@@ -44,6 +46,8 @@ app.post("/shuffle", (req, res) => {
         }
     }
 
+    console.log("Seating arrangement:", seating);
+
     // 隣に座らせたくない生徒のペアが隣接しているかチェック
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols - 1; c++) {  // 横の隣接をチェック
@@ -53,7 +57,6 @@ app.post("/shuffle", (req, res) => {
                 break;
             }
         }
-        if (pairwiseConflict) break;
     }
 
     for (let c = 0; c < cols; c++) {
