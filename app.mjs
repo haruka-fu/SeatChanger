@@ -1,4 +1,4 @@
-const express = require("express");
+import express from 'express'
 const app = express();
 
 app.use(express.json());
@@ -69,4 +69,4 @@ app.post("/shuffle", (req, res) => {
     res.status(200).json({ seating, overflow, pairwiseConflict });
 });
 
-module.exports = app
+export default app

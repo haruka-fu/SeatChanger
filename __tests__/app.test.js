@@ -1,5 +1,6 @@
-const request = require('supertest');
-const app = require('../app')
+import { expect, describe, it } from 'vitest'
+import request from 'supertest';
+import app from '../app.mjs'
 
 describe('POST /shuffle', () => {
     // 基本的なエンドポイントのテスト
