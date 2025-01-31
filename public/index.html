@@ -75,13 +75,13 @@
             <div class="col-md-4">
                 <label class="form-label">縦の座標</label>
                 <select class="form-select" v-model="selectedRow">
-                    <option v-for="row in availableRows" :key="row" :value="row">{{ row }}</option>
+                    <option v-for="row in availableRows" :key="row" :value="row">{{ row + 1 }}</option>
                 </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label">横の座標</label>
                 <select class="form-select" v-model="selectedCol">
-                    <option v-for="col in availableCols" :key="col" :value="col">{{ col }}</option>
+                    <option v-for="col in availableCols" :key="col" :value="col">{{ col + 1 }}</option>
                 </select>
             </div>
         </div>
@@ -92,7 +92,7 @@
             <ul class="list-group mb-4">
                 <li v-for="(seat, index) in fixedSeats" :key="index"
                     class="list-group-item d-flex justify-content-between align-items-center">
-                    生徒 {{ seat.student }} を ({{ seat.row }}, {{ seat.col }}) に固定
+                    生徒 {{ seat.student }} を ({{ seat.row + 1 }}, {{ seat.col + 1 }}) に固定
                     <button class="btn btn-danger btn-sm" @click="removeFixedSeat(index)">削除</button>
                 </li>
             </ul>
