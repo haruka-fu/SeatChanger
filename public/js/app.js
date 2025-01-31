@@ -35,10 +35,29 @@ const app = Vue.createApp({
                     (pair[0] === newPair[0] && pair[1] === newPair[1]) ||
                     (pair[0] === newPair[1] && pair[1] === newPair[0])
                 );
-                if (!isAlreadyAdded) {
+                const isAdjacent = this.fixedSeats.some(seat => {
+                    const [a, b] = newPair;
+                    return (
+                        (seat.student === a && (
+                            (this.seating[seat.row]?.[seat.col - 1] === b) ||
+                            (this.seating[seat.row]?.[seat.col + 1] === b) ||
+                            (this.seating[seat.row - 1]?.[seat.col] === b) ||
+                            (this.seating[seat.row + 1]?.[seat.col] === b)
+                        )) ||
+                        (seat.student === b && (
+                            (this.seating[seat.row]?.[seat.col - 1] === a) ||
+                            (this.seating[seat.row]?.[seat.col + 1] === a) ||
+                            (this.seating[seat.row - 1]?.[seat.col] === a) ||
+                            (this.seating[seat.row + 1]?.[seat.col] === a)
+                        ))
+                    );
+                });
+                if (!isAlreadyAdded && !isAdjacent) {
                     this.forbiddenPairs.push(newPair);
                     this.sortForbiddenPairs();
                     this.forbiddenErrorMessage = "";
+                } else if (isAdjacent) {
+                    this.forbiddenErrorMessage = "このペアは既に隣に座っています。";
                 } else {
                     this.forbiddenErrorMessage = "このペアはすでに追加されています。";
                 }

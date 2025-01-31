@@ -169,4 +169,32 @@ describe('POST /shuffle', () => {
 
         expect(pairwiseConflict).toBe(false); // 禁止ペアが隣接していないことを確認
     });
+
+    // 固定席を設定した後に隣に座らせたくないペアを追加しようとした場合のテスト
+    it('should not allow adding forbidden pairs that are already adjacent due to fixed seats', async () => {
+        // 固定席を設定
+        const fixedSeatsResponse = await request(app)
+            .post('/shuffle')
+            .send({
+                students: 32,
+                rows: 4,
+                cols: 8,
+                forbiddenPairs: [],
+                fixedSeats: [{ student: 1, row: 0, col: 0 }, { student: 2, row: 0, col: 1 }]
+            });
+        expect(fixedSeatsResponse.status).toBe(200);
+
+        // 隣に座らせたくないペアを追加しようとする
+        const forbiddenPairsResponse = await request(app)
+            .post('/shuffle')
+            .send({
+                students: 32,
+                rows: 4,
+                cols: 8,
+                forbiddenPairs: [[1, 2]],
+                fixedSeats: [{ student: 1, row: 0, col: 0 }, { student: 2, row: 0, col: 1 }]
+            });
+        expect(forbiddenPairsResponse.status).toBe(200);
+        expect(forbiddenPairsResponse.body.pairwiseConflict).toBe(true); // 隣接する禁止ペアがあることを確認
+    });
 });

@@ -68,7 +68,7 @@ app.post("/shuffle", (req, res) => {
     }
 
     // 結果を返す
-    res.json({ seating, overflow, pairwiseConflict });
+    res.status(200).json({ seating, overflow, pairwiseConflict });
 });
 
 app.listen(PORT, () => {
