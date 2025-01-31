@@ -15,7 +15,8 @@ const app = Vue.createApp({
             selectedRow: 0,
             selectedCol: 0,
             forbiddenErrorMessage: "",
-            fixedSeatErrorMessage: ""
+            fixedSeatErrorMessage: "",
+            errorMessage: "" // 追加
         };
     },
     computed: {
@@ -24,6 +25,15 @@ const app = Vue.createApp({
         },
         availableCols() {
             return Array.from({ length: this.cols }, (_, i) => i);
+        }
+    },
+    watch: {
+        students(newVal) {
+            if (newVal > this.rows * this.cols) {
+                this.errorMessage = "座席数より人数が多いため、一部の学生を配置できません。";
+            } else {
+                this.errorMessage = "";
+            }
         }
     },
     mounted() {
