@@ -19,9 +19,13 @@ const shuffleArray = (array) => {
 
 // 席替えAPI
 app.post("/shuffle", (req, res) => {
+    console.log("Received /shuffle request with body:", req.body);
+
     const { students, rows, cols, forbiddenPairs } = req.body;
     let studentNumbers = Array.from({ length: students }, (_, i) => i + 1);
     let shuffled = shuffleArray(studentNumbers);
+
+    console.log("Shuffled student numbers:", shuffled);
 
     let maxSeats = rows * cols;
     let seating = [];
@@ -42,6 +46,8 @@ app.post("/shuffle", (req, res) => {
         seating.push(row);
     }
 
+    console.log("Seating arrangement:", seating);
+
     // 隣に座らせたくない生徒のペアが隣接しているかチェック
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols - 1; c++) {  // 横の隣接をチェック
@@ -52,6 +58,8 @@ app.post("/shuffle", (req, res) => {
             }
         }
     }
+
+    console.log("Pairwise conflict:", pairwiseConflict);
 
     // 結果を返す
     res.json({ seating, overflow, pairwiseConflict });
