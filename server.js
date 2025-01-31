@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+// dotenvパッケージを読み込み
+require('dotenv').config();
+
+const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -47,35 +51,12 @@ app.post("/shuffle", (req, res) => {
                 break;
             }
         }
-        if (pairwiseConflict) break;
     }
 
-    // もし隣に座らせたくない生徒が隣接している場合、再シャッフルする
-    if (pairwiseConflict) {
-        shuffled = shuffleArray(studentNumbers);
-        seating = [];
-        index = 0;
-        for (let r = 0; r < rows; r++) {
-            let row = [];
-            for (let c = 0; c < cols; c++) {
-                if (index < maxSeats) {
-                    row.push(shuffled[index++]);
-                } else {
-                    row.push(null);
-                }
-            }
-            seating.push(row);
-        }
-    }
-
-    // 溢れた生徒
-    if (students > maxSeats) {
-        overflow = shuffled.slice(maxSeats);
-    }
-
-    res.json({ seating, overflow });
+    // 結果を返す
+    res.json({ seating, overflow, pairwiseConflict });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
