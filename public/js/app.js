@@ -147,6 +147,40 @@ const app = Vue.createApp({
             const data = await response.json();
             this.seating = data.seating;
             this.overflowStudents = data.overflow;
+        },
+        // 座席表を画像として保存します
+        saveSeatChartAsImage() {
+            const seatChartElement = document.getElementById('seat-chart');
+            html2canvas(seatChartElement).then(canvas => {
+                // 新しいキャンバスを作成して9:16のサイズに設定
+                const newCanvas = document.createElement('canvas');
+                const context = newCanvas.getContext('2d');
+                const aspectRatio = 9 / 16;
+                const originalWidth = canvas.width;
+                const originalHeight = canvas.height;
+                const newWidth = originalWidth;
+                const newHeight = originalWidth * aspectRatio;
+
+                newCanvas.width = newWidth;
+                newCanvas.height = newHeight;
+
+                // 背景を白に設定
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
+                // 元のキャンバスを新しいキャンバスの中央に描画
+                const offsetX = (newWidth - originalWidth) / 2;
+                const offsetY = (newHeight - originalHeight) / 2;
+                context.drawImage(canvas, offsetX, offsetY);
+
+                // 画像をダウンロード
+                const link = document.createElement('a');
+                const now = new Date();
+                const formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+                link.href = newCanvas.toDataURL('image/png');
+                link.download = `seat-chart_${formattedDate}.png`;
+                link.click();
+            });
         }
     }
 });

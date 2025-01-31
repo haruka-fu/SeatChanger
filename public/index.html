@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
     <link rel="icon" href="img/icns.ico" />
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.7/dist/html2canvas.min.js"></script>
 </head>
 
 <body class="bg-light">
@@ -106,17 +107,23 @@
         </div>
 
         <!-- 結果表示 -->
-        <div v-if="seating.length" class="mt-4">
-            <h2 class="text-center">席替え結果</h2>
-            <div class="table-responsive">
-                <table class="table table-bordered text-center">
-                    <tbody>
-                        <tr v-for="(row, rowIndex) in seating" :key="rowIndex">
-                            <td v-for="(seat, colIndex) in row" :key="colIndex">{{ seat }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div id="seat-chart">
+            <div v-if="seating.length" class="mt-4">
+                <h2 class="text-center">席替え結果</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center">
+                        <tbody>
+                            <tr v-for="(row, rowIndex) in seating" :key="rowIndex">
+                                <td v-for="(seat, colIndex) in row" :key="colIndex">{{ seat }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        </div>
+
+        <div class="text-center">
+            <button class="btn btn-success mb-4" @click="saveSeatChartAsImage">座席表を画像として保存</button>
         </div>
     </div>
 
