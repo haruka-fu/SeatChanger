@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.mjs",
+  "type": "module",
   "scripts": {
     "test": "vitest run",
     "start": "node server.mjs"
