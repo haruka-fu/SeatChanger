@@ -35,69 +35,87 @@
             <div class="col-md-6">
                 <label class="form-label">隣に座らせたくない生徒 1</label>
                 <select class="form-select" v-model="selectedStudent1">
-                    <option value>-- 生徒1を選択 --</option>
-                    <option v-for="student in studentOptions" :key="student" :value="student">
-                        {{ student }}
-                    </option>
+                    <option :value="null">-- 生徒1を選択 --</option>
+                    <option v-for="n in students" :key="n" :value="n">生徒 {{ n }}</option>
                 </select>
             </div>
             <div class="col-md-6">
                 <label class="form-label">隣に座らせたくない生徒 2</label>
                 <select class="form-select" v-model="selectedStudent2">
-                    <option value>-- 生徒2を選択 --</option>
-                    <option v-for="student in studentOptions" :key="student" :value="student">
-                        {{ student }}
-                    </option>
+                    <option :value="null">-- 生徒2を選択 --</option>
+                    <option v-for="n in students" :key="n" :value="n">生徒 {{ n }}</option>
                 </select>
             </div>
         </div>
-
-        <div v-if="errorMessage" class="alert alert-warning">{{ errorMessage }}</div>
-
-        <button class="btn btn-secondary w-100 mb-4" @click="addForbiddenPair">
-            隣に座らせたくない生徒を追加
-        </button>
+        <button class="btn btn-primary mb-4" @click="addForbiddenPair">隣に座らせたくない生徒を追加</button>
 
         <div v-if="forbiddenPairs.length > 0">
             <h5>隣に座らせたくない生徒リスト</h5>
             <ul class="list-group mb-4">
                 <li v-for="(pair, index) in forbiddenPairs" :key="index"
                     class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ pair[0] }} と {{ pair[1] }} を隣に座らせない
-                    <button class="btn btn-danger btn-sm" @click="removeForbiddenPair(index)">
-                        削除
-                    </button>
+                    生徒 {{ pair[0] }} と生徒 {{ pair[1] }} を隣に座らせない
+                    <button class="btn btn-danger btn-sm" @click="removeForbiddenPair(index)">削除</button>
                 </li>
             </ul>
         </div>
 
-        <button class="btn btn-primary w-100 mb-4" @click="shuffleSeats">
-            席替え
-        </button>
+        <div v-if="forbiddenErrorMessage" class="alert alert-warning">{{ forbiddenErrorMessage }}</div>
 
-        <div v-if="overflowStudents.length > 0" class="alert alert-warning">
-            ⚠️ {{ overflowStudents.length }} 人分の席が足りません！
+        <!-- 固定席の設定 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="form-label">固定席の生徒</label>
+                <select class="form-select" v-model="selectedFixedStudent">
+                    <option :value="null">-- 生徒を選択 --</option>
+                    <option v-for="n in students" :key="n" :value="n">生徒 {{ n }}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">縦の座標</label>
+                <select class="form-select" v-model="selectedRow">
+                    <option v-for="row in availableRows" :key="row" :value="row">{{ row }}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">横の座標</label>
+                <select class="form-select" v-model="selectedCol">
+                    <option v-for="col in availableCols" :key="col" :value="col">{{ col }}</option>
+                </select>
+            </div>
         </div>
+        <button class="btn btn-primary mb-4" @click="addFixedSeat">固定席を追加</button>
 
-        <div class="table-responsive">
-            <table class="table table-bordered text-center">
-                <tbody>
-                    <tr v-for="row in seating" :key="row">
-                        <td v-for="seat in row" :key="seat" class="seat">
-                            {{ seat || "-" }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div v-if="overflowStudents.length > 0" class="mt-3">
-            <h5>座れなかった生徒:</h5>
-            <ul class="list-group">
-                <li v-for="student in overflowStudents" :key="student" class="list-group-item">
-                    {{ student }}
+        <div v-if="fixedSeats.length > 0">
+            <h5>固定席リスト</h5>
+            <ul class="list-group mb-4">
+                <li v-for="(seat, index) in fixedSeats" :key="index"
+                    class="list-group-item d-flex justify-content-between align-items-center">
+                    生徒 {{ seat.student }} を ({{ seat.row }}, {{ seat.col }}) に固定
+                    <button class="btn btn-danger btn-sm" @click="removeFixedSeat(index)">削除</button>
                 </li>
             </ul>
+        </div>
+
+        <div v-if="fixedSeatErrorMessage" class="alert alert-warning">{{ fixedSeatErrorMessage }}</div>
+
+        <!-- 席替えボタン -->
+        <div class="text-center">
+            <button class="btn btn-success" @click="shuffleSeats">席替えを実行</button>
+        </div>
+
+        <!-- 結果表示 -->
+        <div v-if="seating.length" class="mt-4">
+            <h2 class="text-center">席替え結果</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered text-center">
+                    <tbody>
+                        <tr v-for="(row, rowIndex) in seating" :key="rowIndex">
+                            <td v-for="(seat, colIndex) in row" :key="colIndex">{{ seat }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

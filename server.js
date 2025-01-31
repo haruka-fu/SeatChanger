@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
-const PORT = 3000;
+
+// dotenvパッケージを読み込み
+require('dotenv').config();
+
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -15,27 +19,29 @@ const shuffleArray = (array) => {
 
 // 席替えAPI
 app.post("/shuffle", (req, res) => {
-    const { students, rows, cols, forbiddenPairs } = req.body;
+    const { students, rows, cols, forbiddenPairs, fixedSeats } = req.body;
     let studentNumbers = Array.from({ length: students }, (_, i) => i + 1);
     let shuffled = shuffleArray(studentNumbers);
 
     let maxSeats = rows * cols;
-    let seating = [];
+    let seating = Array.from({ length: rows }, () => Array(cols).fill(null));
     let overflow = [];
     let pairwiseConflict = false;
 
-    // 席割り
+    // 固定席を配置
+    fixedSeats.forEach(seat => {
+        seating[seat.row][seat.col] = seat.student;
+        shuffled = shuffled.filter(student => student !== seat.student);
+    });
+
+    // 残りの席をシャッフル
     let index = 0;
     for (let r = 0; r < rows; r++) {
-        let row = [];
         for (let c = 0; c < cols; c++) {
-            if (index < maxSeats) {
-                row.push(shuffled[index++]);
-            } else {
-                row.push(null);
+            if (!seating[r][c] && index < shuffled.length) {
+                seating[r][c] = shuffled[index++];
             }
         }
-        seating.push(row);
     }
 
     // 隣に座らせたくない生徒のペアが隣接しているかチェック
@@ -50,30 +56,19 @@ app.post("/shuffle", (req, res) => {
         if (pairwiseConflict) break;
     }
 
-    // もし隣に座らせたくない生徒が隣接している場合、再シャッフルする
-    if (pairwiseConflict) {
-        shuffled = shuffleArray(studentNumbers);
-        seating = [];
-        index = 0;
-        for (let r = 0; r < rows; r++) {
-            let row = [];
-            for (let c = 0; c < cols; c++) {
-                if (index < maxSeats) {
-                    row.push(shuffled[index++]);
-                } else {
-                    row.push(null);
-                }
+    for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows - 1; r++) {  // 縦の隣接をチェック
+            const pair = [seating[r][c], seating[r + 1][c]];
+            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                pairwiseConflict = true;
+                break;
             }
-            seating.push(row);
         }
+        if (pairwiseConflict) break;
     }
 
-    // 溢れた生徒
-    if (students > maxSeats) {
-        overflow = shuffled.slice(maxSeats);
-    }
-
-    res.json({ seating, overflow });
+    // 結果を返す
+    res.json({ seating, overflow, pairwiseConflict });
 });
 
 app.listen(PORT, () => {
