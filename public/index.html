@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>席替えアプリ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-light">
+    <div id="app" class="container py-5">
+        <h1 class="text-center mb-4">席替えアプリ</h1>
+
+        <!-- クラスの人数や席数設定 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="form-label">クラスの人数:</label>
+                <input type="number" class="form-control" v-model="students">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">縦の席数:</label>
+                <input type="number" class="form-control" v-model="rows">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">横の席数:</label>
+                <input type="number" class="form-control" v-model="cols">
+            </div>
+        </div>
+
+        <!-- 隣に座らせたくない生徒の設定 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label">隣に座らせたくない生徒 1:</label>
+                <select class="form-select" v-model="selectedStudent1">
+                    <option value="">-- 生徒1を選択 --</option>
+                    <option v-for="student in studentOptions" :key="student" :value="student">{{ student }}</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">隣に座らせたくない生徒 2:</label>
+                <select class="form-select" v-model="selectedStudent2">
+                    <option value="">-- 生徒2を選択 --</option>
+                    <option v-for="student in studentOptions" :key="student" :value="student">{{ student }}</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn btn-secondary w-100 mb-4" @click="addForbiddenPair">隣に座らせたくない生徒を追加</button>
+
+        <div v-if="forbiddenPairs.length > 0">
+            <h5>隣に座らせたくない生徒リスト:</h5>
+            <ul class="list-group mb-4">
+                <li v-for="(pair, index) in forbiddenPairs" :key="index" class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ pair[0] }} と {{ pair[1] }} を隣に座らせない
+                    <button class="btn btn-danger btn-sm" @click="removeForbiddenPair(index)">削除</button>
+                </li>
+            </ul>
+        </div>
+
+        <button class="btn btn-primary w-100 mb-4" @click="shuffleSeats">席替え</button>
+
+        <div v-if="overflowStudents.length > 0" class="alert alert-warning">
+            ⚠️ {{ overflowStudents.length }} 人分の席が足りません！
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered text-center">
+                <tbody>
+                    <tr v-for="row in seating" :key="row">
+                        <td v-for="seat in row" :key="seat" class="seat">
+                            {{ seat || "-" }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div v-if="overflowStudents.length > 0" class="mt-3">
+            <h5>座れなかった生徒:</h5>
+            <ul class="list-group">
+                <li v-for="student in overflowStudents" :key="student" class="list-group-item">
+                    {{ student }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
