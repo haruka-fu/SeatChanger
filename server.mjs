@@ -1,4 +1,4 @@
-import app from './app.mjs';
+import app from './api.mjs';
 
 // dotenvパッケージを読み込み
 import 'dotenv/config';

@@ -1,6 +1,6 @@
 import { expect, describe, it } from 'vitest'
 import request from 'supertest';
-import app from '../app.mjs'
+import app from '../api.mjs'
 
 describe('POST /shuffle', () => {
     // 基本的なエンドポイントのテスト
