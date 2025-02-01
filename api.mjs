@@ -77,6 +77,10 @@ app.post("/shuffle", (req, res) => {
 app.post("/generate-image", async (req, res) => {
     const { seating } = req.body;
 
+    if (!seating || !Array.isArray(seating)) {
+        return res.status(400).json({ error: 'Invalid seating data' });
+    }
+
     const htmlContent = `
         <html>
         <body style="background-color: #f0f8ff; width: 800px; height: 450px; display: flex; justify-content: center; align-items: center;">
