@@ -48,6 +48,8 @@ describe('POST /shuffle', () => {
         expect(response.status).toBe(200);
         const seating = response.body.seating;
         let pairwiseConflict = false;
+
+        // 横方向の隣接をチェック
         for (let r = 0; r < seating.length; r++) {
             for (let c = 0; c < seating[r].length - 1; c++) {
                 const pair = [seating[r][c], seating[r][c + 1]];
@@ -58,6 +60,21 @@ describe('POST /shuffle', () => {
             }
             if (pairwiseConflict) break;
         }
+
+        // 縦方向の隣接をチェック
+        if (!pairwiseConflict) {
+            for (let c = 0; c < seating[0].length; c++) {
+                for (let r = 0; r < seating.length - 1; r++) {
+                    const pair = [seating[r][c], seating[r + 1][c]];
+                    if (pair.includes(1) && pair.includes(2)) {
+                        pairwiseConflict = true;
+                        break;
+                    }
+                }
+                if (pairwiseConflict) break;
+            }
+        }
+
         expect(pairwiseConflict).toBe(false);
     });
 
