@@ -108,27 +108,6 @@
             <button class="btn btn-success" @click="shuffleSeats" :disabled="isGeneratingImage">席替えを実行</button>
         </div>
 
-        <!-- 結果表示 -->
-        <div id="seat-chart">
-            <div v-if="seating.length" class="mt-4">
-                <h2 class="text-center">席替え結果</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered text-center">
-                        <tbody>
-                            <tr v-for="(row, rowIndex) in seating" :key="rowIndex">
-                                <td v-for="(seat, colIndex) in row" :key="colIndex">{{ seat }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- 画像生成ボタン -->
-        <div class="text-center">
-            <button class="btn btn-success mb-4" @click="generateImage" :disabled="isGeneratingImage">画像を生成</button>
-        </div>
-    
         <!-- 生成中の表示 -->
         <div v-if="isGeneratingImage" class="text-center">
             <p>画像を生成中です。しばらくお待ちください...</p>

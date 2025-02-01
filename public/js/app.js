@@ -82,8 +82,10 @@ const app = Vue.createApp({
         },
         // 隣に座らせたくないペアを削除します
         removeForbiddenPair(index) {
-            this.forbiddenPairs.splice(index, 1);
-            this.sortForbiddenPairs();
+            if (!this.isGeneratingImage) {
+                this.forbiddenPairs.splice(index, 1);
+                this.sortForbiddenPairs();
+            }
         },
         // 隣に座らせたくないペアをソートします
         sortForbiddenPairs() {
@@ -138,36 +140,36 @@ const app = Vue.createApp({
         },
         // 固定席を削除します
         removeFixedSeat(index) {
-            const seat = this.fixedSeats.splice(index, 1)[0];
-            this.seating[seat.row][seat.col] = null; // 座席から固定生徒を削除
+            if (!this.isGeneratingImage) {
+                const seat = this.fixedSeats.splice(index, 1)[0];
+                this.seating[seat.row][seat.col] = null; // 座席から固定生徒を削除
+            }
         },
-        // 席替えを実行します
+        // 席替えを実行し、画像を生成して表示します
         async shuffleSeats() {
-            const response = await fetch("/shuffle", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    students: this.students,
-                    rows: this.rows,
-                    cols: this.cols,
-                    forbiddenPairs: this.forbiddenPairs,
-                    fixedSeats: this.fixedSeats
-                })
-            });
-            const data = await response.json();
-            this.seating = data.seating;
-            this.overflowStudents = data.overflow;
-        },
-        // 淡い色の背景を持つ画像を生成し、ブラウザに表示するメソッドを追加
-        async generateImage() {
             this.isGeneratingImage = true; // 生成中フラグを立てる
             try {
+                const response = await fetch("/shuffle", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        students: this.students,
+                        rows: this.rows,
+                        cols: this.cols,
+                        forbiddenPairs: this.forbiddenPairs,
+                        fixedSeats: this.fixedSeats
+                    })
+                });
+                const data = await response.json();
+                this.seating = data.seating;
+                this.overflowStudents = data.overflow;
+
                 // 現在の座席情報を取得
                 const currentSeating = this.seating;
 
-                const response = await fetch("/generate-image", {
+                const imageResponse = await fetch("/generate-image", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -175,11 +177,11 @@ const app = Vue.createApp({
                     body: JSON.stringify({ seating: currentSeating })
                 });
 
-                if (!response.ok) {
+                if (!imageResponse.ok) {
                     throw new Error('画像生成中にエラーが発生しました');
                 }
 
-                const blob = await response.blob();
+                const blob = await imageResponse.blob();
                 const url = URL.createObjectURL(blob);
                 this.generatedImageUrl = url; // 生成された画像のURLを更新
             } catch (error) {

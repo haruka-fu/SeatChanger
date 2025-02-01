@@ -73,8 +73,8 @@ app.post("/generate-image", async (req, res) => {
 
     const htmlContent = `
         <html>
-        <body style="background-color: #f0f8ff; width: 1600px; height: 900px; display: flex; justify-content: center; align-items: center;">
-            <table style="width: 80%; height: 60%; border-collapse: collapse; font-size: 2.5rem;">
+        <body style="background-color: #f0f8ff; width: 800px; height: 450px; display: flex; justify-content: center; align-items: center;">
+            <table style="width: 80%; height: 60%; border-collapse: collapse; font-size: 1.5rem;">
                 ${seating.map(row => `
                     <tr>
                         ${row.map(seat => `
@@ -92,7 +92,8 @@ app.post("/generate-image", async (req, res) => {
     try {
         const image = await nodeHtmlToImage({
             html: htmlContent,
-            type: 'png'
+            type: 'png',
+            quality: 80 // 画像の品質を調整
         });
 
         res.set('Content-Type', 'image/png');
