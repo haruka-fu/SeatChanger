@@ -15,7 +15,12 @@ const app = Vue.createApp({
             selectedRow: 0,
             selectedCol: 0,
             forbiddenErrorMessage: "",
-            fixedSeatErrorMessage: ""
+            fixedSeatErrorMessage: "",
+            errorMessage: "", // 追加
+            overflowErrorMessage: "", // 追加
+            isGeneratingImage: false, // 追加
+            generatedImageUrl: null, // 追加
+            isFirstLoad: true // 追加
         };
     },
     computed: {
@@ -24,6 +29,15 @@ const app = Vue.createApp({
         },
         availableCols() {
             return Array.from({ length: this.cols }, (_, i) => i);
+        }
+    },
+    watch: {
+        students(newVal) {
+            if (newVal > this.rows * this.cols) {
+                this.errorMessage = "座席数より人数が多いため、一部の学生を配置できません。";
+            } else {
+                this.errorMessage = "";
+            }
         }
     },
     mounted() {
@@ -70,8 +84,10 @@ const app = Vue.createApp({
         },
         // 隣に座らせたくないペアを削除します
         removeForbiddenPair(index) {
-            this.forbiddenPairs.splice(index, 1);
-            this.sortForbiddenPairs();
+            if (!this.isGeneratingImage) {
+                this.forbiddenPairs.splice(index, 1);
+                this.sortForbiddenPairs();
+            }
         },
         // 隣に座らせたくないペアをソートします
         sortForbiddenPairs() {
@@ -126,27 +142,67 @@ const app = Vue.createApp({
         },
         // 固定席を削除します
         removeFixedSeat(index) {
-            const seat = this.fixedSeats.splice(index, 1)[0];
-            this.seating[seat.row][seat.col] = null; // 座席から固定生徒を削除
+            if (!this.isGeneratingImage) {
+                const seat = this.fixedSeats.splice(index, 1)[0];
+                this.seating[seat.row][seat.col] = null; // 座席から固定生徒を削除
+            }
         },
-        // 席替えを実行します
+        // 席替えを実行し、画像を生成して表示します
         async shuffleSeats() {
-            const response = await fetch("/shuffle", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    students: this.students,
-                    rows: this.rows,
-                    cols: this.cols,
-                    forbiddenPairs: this.forbiddenPairs,
-                    fixedSeats: this.fixedSeats
-                })
-            });
-            const data = await response.json();
-            this.seating = data.seating;
-            this.overflowStudents = data.overflow;
+            this.isGeneratingImage = true; // 生成中フラグを立てる
+            try {
+                const response = await fetch("/shuffle", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        students: this.students,
+                        rows: this.rows,
+                        cols: this.cols,
+                        forbiddenPairs: this.forbiddenPairs,
+                        fixedSeats: this.fixedSeats
+                    })
+                });
+                const data = await response.json();
+                this.seating = data.seating;
+                this.overflowStudents = data.overflow;
+
+                // 溢れた生徒がいる場合にエラーメッセージを表示
+                if (this.overflowStudents.length > 0) {
+                    this.overflowErrorMessage = `${this.overflowStudents.length}人の生徒が配置できませんでした。`;
+                } else {
+                    this.overflowErrorMessage = "";
+                }
+
+                // 初回ロード時は画像を生成しない
+                if (!this.isFirstLoad) {
+                    // 現在の座席情報を取得
+                    const currentSeating = this.seating;
+
+                    const imageResponse = await fetch("/generate-image", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ seating: currentSeating })
+                    });
+
+                    if (!imageResponse.ok) {
+                        throw new Error('画像生成中にエラーが発生しました');
+                    }
+
+                    const blob = await imageResponse.blob();
+                    const url = URL.createObjectURL(blob);
+                    this.generatedImageUrl = url; // 生成された画像のURLを更新
+                } else {
+                    this.isFirstLoad = false; // 初回ロードフラグを下げる
+                }
+            } catch (error) {
+                console.error(error.message);
+            } finally {
+                this.isGeneratingImage = false; // 生成中フラグを下げる
+            }
         }
     }
 });

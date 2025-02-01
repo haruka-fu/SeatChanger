@@ -1,6 +1,6 @@
 /* テーブルのセルのデザイン */
 .seat {
-    height: 100px;  /* セルの高さを100pxに設定 */
+    height: 120px;  /* セルの高さを120pxに設定 */
     vertical-align: middle;  /* 文字を中央揃え */
     font-size: 1.5rem;  /* 数字を大きく */
     font-weight: bold;  /* 太字に */
@@ -22,7 +22,12 @@ body {
 /* レスポンシブ対応 */
 @media (max-width: 600px) {
     .seat {
-        height: 80px;  /* スマホでは少し高さを縮める */
+        height: 100px;  /* スマホでは少し高さを縮める */
         font-size: 1.2rem;
     }
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
 }
