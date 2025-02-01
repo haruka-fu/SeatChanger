@@ -1,5 +1,5 @@
 import express from 'express';
-import puppeteer from 'puppeteer';
+import nodeHtmlToImage from 'node-html-to-image';
 
 const app = express();
 
@@ -67,22 +67,40 @@ app.post("/shuffle", (req, res) => {
     res.status(200).json({ seating, overflow, pairwiseConflict });
 });
 
-// 画像生成API
-// app.post("/generate-image", async (req, res) => {
-//     const { htmlContent } = req.body;
+// 座席表を生成するAPI
+app.post("/generate-image", async (req, res) => {
+    const { seating } = req.body;
 
-//     try {
-//         const browser = await puppeteer.launch();
-//         const page = await browser.newPage();
-//         await page.setContent(htmlContent);
-//         const imageBuffer = await page.screenshot({ type: 'png' });
-//         await browser.close();
+    const htmlContent = `
+        <html>
+        <body style="background-color: #f0f8ff; width: 1600px; height: 900px; display: flex; justify-content: center; align-items: center;">
+            <table style="width: 80%; height: 60%; border-collapse: collapse; font-size: 2.5rem;">
+                ${seating.map(row => `
+                    <tr>
+                        ${row.map(seat => `
+                            <td style="border: 1px solid #000; text-align: center; vertical-align: middle;">
+                                ${seat !== null ? seat : ''}
+                            </td>
+                        `).join('')}
+                    </tr>
+                `).join('')}
+            </table>
+        </body>
+        </html>
+    `;
 
-//         res.set('Content-Type', 'image/png');
-//         res.status(200).send(imageBuffer);
-//     } catch (error) {
-//         res.status(500).send('Error generating image');
-//     }
-// });
+    try {
+        const image = await nodeHtmlToImage({
+            html: htmlContent,
+            type: 'png'
+        });
+
+        res.set('Content-Type', 'image/png');
+        res.status(200).send(image);
+    } catch (error) {
+        console.error('Error generating image:', error);
+        res.status(500).send('Error generating image');
+    }
+});
 
 export default app;

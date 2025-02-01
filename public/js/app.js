@@ -16,7 +16,8 @@ const app = Vue.createApp({
             selectedCol: 0,
             forbiddenErrorMessage: "",
             fixedSeatErrorMessage: "",
-            errorMessage: "" // 追加
+            errorMessage: "", // 追加
+            isGeneratingImage: false // 追加
         };
     },
     computed: {
@@ -158,82 +159,36 @@ const app = Vue.createApp({
             this.seating = data.seating;
             this.overflowStudents = data.overflow;
         },
-        // 座席表を画像として保存します
-        saveSeatChartAsImage() {
-            const seatChartElement = document.getElementById('seat-chart');
-            html2canvas(seatChartElement).then(canvas => {
-                // 新しいキャンバスを作成して9:16のサイズに設定
-                const newCanvas = document.createElement('canvas');
-                const context = newCanvas.getContext('2d');
-                const aspectRatio = 9 / 16;
-                const originalWidth = canvas.width;
-                const originalHeight = canvas.height;
-                const newWidth = originalWidth;
-                const newHeight = originalWidth * aspectRatio;
-
-                newCanvas.width = newWidth;
-                newCanvas.height = newHeight;
-
-                // 背景を白に設定
-                context.fillStyle = '#ffffff';
-                context.fillRect(0, 0, newCanvas.width, newCanvas.height);
-
-                // 元のキャンバスを新しいキャンバスの中央に描画
-                const offsetX = (newWidth - originalWidth) / 2;
-                const offsetY = (newHeight - originalHeight) / 2;
-                context.drawImage(canvas, offsetX, offsetY);
-
-                // 画像をダウンロード
-                const link = document.createElement('a');
-                const now = new Date();
-                const formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-                link.href = newCanvas.toDataURL('image/png');
-                link.download = `seat-chart_${formattedDate}.png`;
-                link.click();
-            });
-        },
-        // puppeteerを使用して画像を生成するメソッドを追加
+        // 淡い色の背景を持つ画像を生成し、ブラウザに表示するメソッドを追加
         async generateImage() {
-            const seatChartElement = document.querySelector('#seat-chart'); // 要素を取得
-            if (!seatChartElement) {
-                console.error('seat-chart要素が見つかりません');
-                return;
+            this.isGeneratingImage = true; // 生成中フラグを立てる
+            try {
+                const response = await fetch("/generate-image", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ seating: this.seating })
+                });
+
+                if (!response.ok) {
+                    throw new Error('画像生成中にエラーが発生しました');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const image = new Image();
+                image.src = url;
+                image.style.width = '90%';
+                image.style.height = 'auto';
+                image.style.display = 'block';
+                image.style.margin = '0 auto';
+                document.body.appendChild(image); // 画像をブラウザに表示
+            } catch (error) {
+                console.error(error.message);
+            } finally {
+                this.isGeneratingImage = false; // 生成中フラグを下げる
             }
-
-            const htmlContent = seatChartElement.outerHTML;
-
-            const response = await fetch("/generate-image", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ htmlContent })
-            });
-
-            if (!response.ok) {
-                console.error('画像生成中にエラーが発生しました');
-                return;
-            }
-
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            const now = new Date();
-            const formattedDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-            link.href = url;
-            link.download = `seat-chart_${formattedDate}.png`;
-
-            // 画像形式を確認
-            const image = new Image();
-            image.onload = function () {
-                link.click();
-                URL.revokeObjectURL(url); // URLを解放
-            };
-            image.onerror = function () {
-                console.error('このファイルはサポートされていない形式のようです');
-                URL.revokeObjectURL(url); // URLを解放
-            };
-            image.src = url;
         }
     }
 });
