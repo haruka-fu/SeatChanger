@@ -19,7 +19,8 @@ const app = Vue.createApp({
             errorMessage: "", // 追加
             overflowErrorMessage: "", // 追加
             isGeneratingImage: false, // 追加
-            generatedImageUrl: null // 追加
+            generatedImageUrl: null, // 追加
+            isFirstLoad: true // 追加
         };
     },
     computed: {
@@ -174,24 +175,29 @@ const app = Vue.createApp({
                     this.overflowErrorMessage = "";
                 }
 
-                // 現在の座席情報を取得
-                const currentSeating = this.seating;
+                // 初回ロード時は画像を生成しない
+                if (!this.isFirstLoad) {
+                    // 現在の座席情報を取得
+                    const currentSeating = this.seating;
 
-                const imageResponse = await fetch("/generate-image", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ seating: currentSeating })
-                });
+                    const imageResponse = await fetch("/generate-image", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ seating: currentSeating })
+                    });
 
-                if (!imageResponse.ok) {
-                    throw new Error('画像生成中にエラーが発生しました');
+                    if (!imageResponse.ok) {
+                        throw new Error('画像生成中にエラーが発生しました');
+                    }
+
+                    const blob = await imageResponse.blob();
+                    const url = URL.createObjectURL(blob);
+                    this.generatedImageUrl = url; // 生成された画像のURLを更新
+                } else {
+                    this.isFirstLoad = false; // 初回ロードフラグを下げる
                 }
-
-                const blob = await imageResponse.blob();
-                const url = URL.createObjectURL(blob);
-                this.generatedImageUrl = url; // 生成された画像のURLを更新
             } catch (error) {
                 console.error(error.message);
             } finally {
