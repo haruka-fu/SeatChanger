@@ -359,15 +359,16 @@ describe('POST /generate-image', () => {
         expect(response.headers['content-type']).toContain('image/png');
     }, 10000); // タイムアウトを10秒に延長
 
-    // 画像生成APIのエラーハンドリングテスト
-    it('should return 400 if there is an error generating the image', async () => {
+    // 画像生成APIの500エラーハンドリングテスト
+    it('should return 500 if there is a server error generating the image', async () => {
+        // seatingデータが不正な場合に500エラーを発生させる
         const response = await request(app)
             .post('/generate-image')
             .send({
-                seating: null // 無効なデータを送信してエラーを発生させる
+                seating: [1, 2, 3] // 無効なデータを送信してサーバーエラーを発生させる
             });
 
-        expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Invalid seating data');
+        expect(response.status).toBe(500);
+        expect(response.body).toHaveProperty('error', 'Error generating image');
     });
 });

@@ -77,8 +77,8 @@ app.post("/shuffle", (req, res) => {
 app.post("/generate-image", async (req, res) => {
     const { seating } = req.body;
 
-    if (!seating || !Array.isArray(seating)) {
-        return res.status(400).json({ error: 'Invalid seating data' });
+    if (!Array.isArray(seating) || !seating.every(row => Array.isArray(row))) {
+        return res.status(500).json({ error: 'Error generating image' });
     }
 
     const htmlContent = `
@@ -110,7 +110,7 @@ app.post("/generate-image", async (req, res) => {
         res.status(200).send(image);
     } catch (error) {
         console.error('Error generating image:', error);
-        res.status(500).json({ error: 'Error generating image', details: error.message });
+        res.status(500).json({ error: 'Error generating image' });
     }
 });
 
