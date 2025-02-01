@@ -2,10 +2,11 @@
   "name": "seat-changer",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "server.mjs",
+  "type": "module",
   "scripts": {
-    "test": "jest",
-    "start": "node server.js"
+    "test": "vitest run",
+    "start": "node server.mjs"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,7 @@
     "puppeteer": "^24.1.1"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "supertest": "^6.3.4"
+    "supertest": "^7.0.0",
+    "vitest": "^3.0.4"
   }
 }
