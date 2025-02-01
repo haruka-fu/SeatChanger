@@ -106,7 +106,7 @@ app.post("/generate-image", async (req, res) => {
         res.status(200).send(image);
     } catch (error) {
         console.error('Error generating image:', error);
-        res.status(500).send('Error generating image');
+        res.status(500).json({ error: 'Error generating image', details: error.message });
     }
 });
 

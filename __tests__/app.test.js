@@ -358,4 +358,16 @@ describe('POST /generate-image', () => {
         expect(response.status).toBe(200);
         expect(response.headers['content-type']).toContain('image/png');
     }, 10000); // タイムアウトを10秒に延長
+
+    // 画像生成APIのエラーハンドリングテスト
+    it('should return 500 if there is an error generating the image', async () => {
+        const response = await request(app)
+            .post('/generate-image')
+            .send({
+                seating: null // 無効なデータを送信してエラーを発生させる
+            });
+
+        expect(response.status).toBe(500);
+        expect(response.body).toHaveProperty('error', 'Error generating image');
+    });
 });
