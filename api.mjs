@@ -41,6 +41,9 @@ app.post("/shuffle", (req, res) => {
         }
     }
 
+    // 溢れた生徒をoverflowに追加
+    overflow = shuffled.slice(index);
+
     // 隣に座らせたくない生徒のペアが隣接しているかチェック
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols - 1; c++) {  // 横の隣接をチェック
@@ -50,17 +53,20 @@ app.post("/shuffle", (req, res) => {
                 break;
             }
         }
+        if (pairwiseConflict) break;
     }
 
-    for (let c = 0; c < cols; c++) {
-        for (let r = 0; r < rows - 1; r++) {  // 縦の隣接をチェック
-            const pair = [seating[r][c], seating[r + 1][c]];
-            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
-                pairwiseConflict = true;
-                break;
+    if (!pairwiseConflict) {
+        for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < rows - 1; r++) {  // 縦の隣接をチェック
+                const pair = [seating[r][c], seating[r + 1][c]];
+                if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                    pairwiseConflict = true;
+                    break;
+                }
             }
+            if (pairwiseConflict) break;
         }
-        if (pairwiseConflict) break;
     }
 
     // 結果を返す

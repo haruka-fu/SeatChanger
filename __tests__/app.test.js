@@ -166,6 +166,8 @@ describe('POST /shuffle', () => {
         expect(response.status).toBe(200);
         const seating = response.body.seating;
         let pairwiseConflict = false;
+
+        // 横方向の隣接をチェック
         for (let r = 0; r < seating.length; r++) {
             for (let c = 0; c < seating[r].length - 1; c++) {
                 const pair = [seating[r][c], seating[r][c + 1]];
@@ -176,6 +178,21 @@ describe('POST /shuffle', () => {
             }
             if (pairwiseConflict) break;
         }
+
+        // 縦方向の隣接をチェック
+        if (!pairwiseConflict) {
+            for (let c = 0; c < seating[0].length; c++) {
+                for (let r = 0; r < seating.length - 1; r++) {
+                    const pair = [seating[r][c], seating[r + 1][c]];
+                    if (pair.includes(1) && pair.includes(2)) {
+                        pairwiseConflict = true;
+                        break;
+                    }
+                }
+                if (pairwiseConflict) break;
+            }
+        }
+
         expect(pairwiseConflict).toBe(false);
     });
 
@@ -223,6 +240,43 @@ describe('POST /shuffle', () => {
         }
 
         expect(pairwiseConflict).toBe(false); // 禁止ペアが隣接していないことを確認
+    });
+
+    // 生徒数が席数を超える場合のテスト
+    it('should handle overflow students correctly', async () => {
+        const response = await request(app)
+            .post('/shuffle')
+            .send({
+                students: 40,
+                rows: 4,
+                cols: 8,
+                forbiddenPairs: [],
+                fixedSeats: []
+            });
+        expect(response.status).toBe(200);
+        const seating = response.body.seating;
+        const overflow = response.body.overflow;
+        expect(overflow.length).toBe(8); // 8人の生徒が溢れるはず
+        expect(seating.flat().filter(seat => seat !== null).length).toBe(32); // 32人の生徒が配置されるはず
+    });
+
+    // 固定席が設定されている場合の席替えのテスト（溢れた生徒がいる場合）
+    it('should handle fixed seats correctly with overflow students', async () => {
+        const response = await request(app)
+            .post('/shuffle')
+            .send({
+                students: 40,
+                rows: 4,
+                cols: 8,
+                forbiddenPairs: [],
+                fixedSeats: [{ student: 1, row: 0, col: 0 }, { student: 2, row: 0, col: 1 }]
+            });
+        expect(response.status).toBe(200);
+        const seating = response.body.seating;
+        const overflow = response.body.overflow;
+        expect(seating[0][0]).toBe(1);
+        expect(seating[0][1]).toBe(2);
+        expect(overflow.length).toBe(8); // 8人の生徒が溢れるはず
     });
 });
 

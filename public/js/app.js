@@ -17,6 +17,7 @@ const app = Vue.createApp({
             forbiddenErrorMessage: "",
             fixedSeatErrorMessage: "",
             errorMessage: "", // 追加
+            overflowErrorMessage: "", // 追加
             isGeneratingImage: false, // 追加
             generatedImageUrl: null // 追加
         };
@@ -165,6 +166,13 @@ const app = Vue.createApp({
                 const data = await response.json();
                 this.seating = data.seating;
                 this.overflowStudents = data.overflow;
+
+                // 溢れた生徒がいる場合にエラーメッセージを表示
+                if (this.overflowStudents.length > 0) {
+                    this.overflowErrorMessage = `${this.overflowStudents.length}人の生徒が配置できませんでした。`;
+                } else {
+                    this.overflowErrorMessage = "";
+                }
 
                 // 現在の座席情報を取得
                 const currentSeating = this.seating;

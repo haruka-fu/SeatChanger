@@ -108,6 +108,9 @@
             <button class="btn btn-success" @click="shuffleSeats" :disabled="isGeneratingImage">席替えを実行</button>
         </div>
 
+        <!-- 溢れた生徒のエラーメッセージ -->
+        <div v-if="overflowErrorMessage" class="alert alert-danger text-center mt-4">{{ overflowErrorMessage }}</div>
+
         <!-- 生成中の表示 -->
         <div v-if="isGeneratingImage" class="text-center">
             <p>画像を生成中です。しばらくお待ちください...</p>
