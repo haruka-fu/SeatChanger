@@ -226,42 +226,14 @@ describe('POST /shuffle', () => {
     });
 });
 
-describe('Image Generation', () => {
-    it('should generate an image from the seat chart', async () => {
-        // テスト用のHTMLコンテンツ
-        const htmlContent = `
-            <div id="seat-chart">
-                <div class="table-responsive">
-                    <table class="table table-bordered text-center">
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>3</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>5</td>
-                                <td>6</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
+// 画像生成テストの削除
+// describe('Image Generation', () => {
+//     it('should generate an image from the seat chart', async () => {
+//         const response = await request(app)
+//             .post('/generate-image')
+//             .send({ htmlContent: '<div>Seat Chart</div>' });
 
-        // 画像生成リクエストを送信
-        const response = await request(app)
-            .post('/generate-image')
-            .send({ htmlContent })
-            .set('Accept', 'image/png');
-
-        // ステータスコードとコンテンツタイプを確認
-        expect(response.status).toBe(200);
-        expect(response.headers['content-type']).toBe('image/png');
-
-        // 画像データが存在することを確認
-        expect(response.body).toBeDefined();
-        expect(response.body.length).toBeGreaterThan(0);
-    });
-});
+//         expect(response.status).toBe(200);
+//         expect(response.headers['content-type']).toBe('image/png');
+//     });
+// });

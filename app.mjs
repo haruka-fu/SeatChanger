@@ -1,4 +1,6 @@
-import express from 'express'
+import express from 'express';
+import puppeteer from 'puppeteer';
+
 const app = express();
 
 app.use(express.json());
@@ -65,4 +67,22 @@ app.post("/shuffle", (req, res) => {
     res.status(200).json({ seating, overflow, pairwiseConflict });
 });
 
-export default app
+// 画像生成API
+// app.post("/generate-image", async (req, res) => {
+//     const { htmlContent } = req.body;
+
+//     try {
+//         const browser = await puppeteer.launch();
+//         const page = await browser.newPage();
+//         await page.setContent(htmlContent);
+//         const imageBuffer = await page.screenshot({ type: 'png' });
+//         await browser.close();
+
+//         res.set('Content-Type', 'image/png');
+//         res.status(200).send(imageBuffer);
+//     } catch (error) {
+//         res.status(500).send('Error generating image');
+//     }
+// });
+
+export default app;
