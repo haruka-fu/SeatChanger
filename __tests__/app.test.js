@@ -226,14 +226,21 @@ describe('POST /shuffle', () => {
     });
 });
 
-// 画像生成テストの削除
-// describe('Image Generation', () => {
-//     it('should generate an image from the seat chart', async () => {
-//         const response = await request(app)
-//             .post('/generate-image')
-//             .send({ htmlContent: '<div>Seat Chart</div>' });
+// 画像生成APIのテスト
+describe('POST /generate-image', () => {
+    it('should generate an image from the seating chart', async () => {
+        const response = await request(app)
+            .post('/generate-image')
+            .send({
+                seating: [
+                    [1, 2, 3, 4, 5, 6, 7, 8],
+                    [9, 10, 11, 12, 13, 14, 15, 16],
+                    [17, 18, 19, 20, 21, 22, 23, 24],
+                    [25, 26, 27, 28, 29, 30, 31, 32]
+                ]
+            });
 
-//         expect(response.status).toBe(200);
-//         expect(response.headers['content-type']).toBe('image/png');
-//     });
-// });
+        expect(response.status).toBe(200);
+        expect(response.headers['content-type']).toContain('image/png');
+    }, 10000); // タイムアウトを10秒に延長
+});
