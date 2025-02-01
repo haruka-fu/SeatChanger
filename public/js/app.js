@@ -17,7 +17,8 @@ const app = Vue.createApp({
             forbiddenErrorMessage: "",
             fixedSeatErrorMessage: "",
             errorMessage: "", // 追加
-            isGeneratingImage: false // 追加
+            isGeneratingImage: false, // 追加
+            generatedImageUrl: null // 追加
         };
     },
     computed: {
@@ -163,12 +164,15 @@ const app = Vue.createApp({
         async generateImage() {
             this.isGeneratingImage = true; // 生成中フラグを立てる
             try {
+                // 現在の座席情報を取得
+                const currentSeating = this.seating;
+
                 const response = await fetch("/generate-image", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ seating: this.seating })
+                    body: JSON.stringify({ seating: currentSeating })
                 });
 
                 if (!response.ok) {
@@ -177,13 +181,7 @@ const app = Vue.createApp({
 
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
-                const image = new Image();
-                image.src = url;
-                image.style.width = '90%';
-                image.style.height = 'auto';
-                image.style.display = 'block';
-                image.style.margin = '0 auto';
-                document.body.appendChild(image); // 画像をブラウザに表示
+                this.generatedImageUrl = url; // 生成された画像のURLを更新
             } catch (error) {
                 console.error(error.message);
             } finally {

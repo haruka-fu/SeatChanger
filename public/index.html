@@ -133,6 +133,11 @@
         <div v-if="isGeneratingImage" class="text-center">
             <p>画像を生成中です。しばらくお待ちください...</p>
         </div>
+
+        <!-- 生成された画像の表示 -->
+        <div v-if="generatedImageUrl" class="text-center">
+            <img :src="generatedImageUrl" alt="Generated Seating Chart" style="width: 90%; height: auto; display: block; margin: 0 auto;" />
+        </div>
     </div>
     
     <script src="js/app.js"></script>
