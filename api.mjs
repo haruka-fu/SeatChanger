@@ -1,10 +1,26 @@
 import express from 'express';
-import { createCanvas } from 'canvas';
+import { createCanvas, registerFont } from 'canvas'; // registerFontを追加
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const app = express();
 
 app.use(express.json());
 app.use(express.static("public"));
+
+// __dirnameの代わりにimport.meta.urlを使用
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// NotoSansJPフォントを登録
+const fontPath = path.join(__dirname, 'public', 'fonts', 'NotoSansJP-VariableFont_wght.ttf');
+if (fs.existsSync(fontPath)) {
+    registerFont(fontPath, { family: 'NotoSansJP' });
+    console.log('Font registered successfully.');
+} else {
+    console.error('Font file does not exist:', fontPath);
+}
 
 // シャッフル関数
 const shuffleArray = (array) => {
@@ -93,7 +109,7 @@ app.post("/generate-image", async (req, res) => {
 
         // タイトルを描画
         ctx.fillStyle = '#000';
-        ctx.font = '30px Arial';
+        ctx.font = 'bold 40px NotoSansJP'; // フォントサイズを40pxに変更し、太字に設定
         ctx.textAlign = 'center';
         ctx.fillText('座席表', canvasWidth / 2, 50);
 
@@ -104,7 +120,7 @@ app.post("/generate-image", async (req, res) => {
         const seatingY = (canvasHeight - seatingHeight) / 2 + 50;
 
         ctx.fillStyle = '#000';
-        ctx.font = '20px Arial';
+        ctx.font = 'bold 30px NotoSansJP'; // フォントサイズを30pxに変更し、太字に設定
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
