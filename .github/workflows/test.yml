@@ -23,4 +23,9 @@ jobs:
       - run: npm install
       - run: npm install puppeteer
       - run: sudo apt-get install -y libgbm-dev
+      - run: sudo apt-get install -y fonts-ipafont-gothic
+      - run: sudo apt-get install -y gconf-service libasound2 libatk1.0-0 libcups2 libdbus-1-3 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libgtk-3-0 libnss3 libxss1 libxtst6 xdg-utils
       - run: npm test
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
+        PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser'
