@@ -31,3 +31,4 @@ jobs:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
         PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser'
         NODE_ENV: 'test'
+        PUPPETEER_ARGS: '--no-sandbox'

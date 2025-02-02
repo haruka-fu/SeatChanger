@@ -1,6 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import request from 'supertest';
 import app from '../api.mjs'
+import puppeteer from 'puppeteer';
 
 describe('POST /shuffle', () => {
     // 基本的なエンドポイントのテスト
@@ -344,6 +345,9 @@ describe('POST /shuffle', () => {
 // 画像生成APIのテスト
 describe('POST /generate-image', () => {
     it('should generate an image from the seating chart', async () => {
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox']
+        });
         const response = await request(app)
             .post('/generate-image')
             .send({
@@ -360,6 +364,7 @@ describe('POST /generate-image', () => {
         console.log('Response body:', response.body); // デバッグ情報を追加
         expect(response.status).toBe(200);
         expect(response.headers['content-type']).toContain('image/png');
+        await browser.close();
     }, 10000); // タイムアウトを10秒に延長
 
     // 画像生成APIの500エラーハンドリングテスト
