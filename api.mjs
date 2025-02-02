@@ -1,5 +1,5 @@
 import express from 'express';
-import nodeHtmlToImage from 'node-html-to-image';
+import { createCanvas } from 'canvas';
 
 const app = express();
 
@@ -81,37 +81,49 @@ app.post("/generate-image", async (req, res) => {
         return res.status(500).json({ error: 'Error generating image' });
     }
 
-    const htmlContent = `
-        <html>
-        <body style="background-color: #f0f8ff; width: 800px; height: 450px; display: flex; justify-content: center; align-items: center;">
-            <table style="width: 80%; height: 60%; border-collapse: collapse; font-size: 1.5rem;">
-                ${seating.map(row => `
-                    <tr>
-                        ${row.map(seat => `
-                            <td style="border: 1px solid #000; text-align: center; vertical-align: middle;">
-                                ${seat !== null ? seat : ''}
-                            </td>
-                        `).join('')}
-                    </tr>
-                `).join('')}
-            </table>
-        </body>
-        </html>
-    `;
+    const canvasWidth = 1000;
+    const canvasHeight = 600;
+    const canvas = createCanvas(canvasWidth, canvasHeight);
+    const ctx = canvas.getContext('2d');
 
-    try {
-        const image = await nodeHtmlToImage({
-            html: htmlContent,
-            type: 'png',
-            quality: 80 // 画像の品質を調整
+    // 背景色を設定
+    ctx.fillStyle = '#f0f8ff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // タイトルを描画
+    ctx.fillStyle = '#000';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('座席表', canvasWidth / 2, 50);
+
+    // 座席表の描画領域を設定
+    const seatingWidth = canvasWidth * 0.8;
+    const seatingHeight = canvasHeight * 0.6;
+    const seatingX = (canvasWidth - seatingWidth) / 2;
+    const seatingY = (canvasHeight - seatingHeight) / 2 + 50;
+
+    ctx.fillStyle = '#000';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const cellWidth = seatingWidth / seating[0].length;
+    const cellHeight = seatingHeight / seating.length;
+
+    seating.forEach((row, rowIndex) => {
+        row.forEach((seat, colIndex) => {
+            const x = seatingX + colIndex * cellWidth + cellWidth / 2;
+            const y = seatingY + rowIndex * cellHeight + cellHeight / 2;
+            ctx.strokeRect(seatingX + colIndex * cellWidth, seatingY + rowIndex * cellHeight, cellWidth, cellHeight);
+            if (seat !== null) {
+                ctx.fillText(seat, x, y);
+            }
         });
+    });
 
-        res.set('Content-Type', 'image/png');
-        res.status(200).send(image);
-    } catch (error) {
-        console.error('Error generating image:', error);
-        res.status(500).json({ error: 'Error generating image' });
-    }
+    const buffer = canvas.toBuffer('image/png');
+    res.set('Content-Type', 'image/png');
+    res.status(200).send(buffer);
 });
 
 export default app;
