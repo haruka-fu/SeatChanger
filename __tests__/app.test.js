@@ -355,6 +355,9 @@ describe('POST /generate-image', () => {
                 ]
             });
 
+        console.log('Response status:', response.status); // デバッグ情報を追加
+        console.log('Response headers:', response.headers); // デバッグ情報を追加
+        console.log('Response body:', response.body); // デバッグ情報を追加
         expect(response.status).toBe(200);
         expect(response.headers['content-type']).toContain('image/png');
     }, 10000); // タイムアウトを10秒に延長
@@ -368,6 +371,9 @@ describe('POST /generate-image', () => {
                 seating: [1, 2, 3] // 無効なデータを送信してサーバーエラーを発生させる
             });
 
+        console.log('Response status:', response.status); // デバッグ情報を追加
+        console.log('Response headers:', response.headers); // デバッグ情報を追加
+        console.log('Response body:', response.body); // デバッグ情報を追加
         expect(response.status).toBe(500);
         expect(response.body).toHaveProperty('error', 'Error generating image');
     });
