@@ -346,7 +346,7 @@ describe('POST /shuffle', () => {
 describe('POST /generate-image', () => {
     it('should generate an image from the seating chart', async () => {
         const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--no-zygote', '--single-process']
         });
         const response = await request(app)
             .post('/generate-image')
