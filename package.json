@@ -16,7 +16,8 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "is-arrayish": "^0.3.2",
-    "node-html-to-image": "^5.0.0"
+    "node-html-to-image": "^5.0.0",
+    "pupeteer": "^0.0.1"
   },
   "devDependencies": {
     "supertest": "^7.0.0",
