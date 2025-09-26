@@ -30,63 +30,77 @@ const shuffleArray = (array) => {
         .map(({ value }) => value);
 };
 
+// 禁止ペアを避けるロジックを追加
+const avoidForbiddenPairs = (seating, forbiddenPairs, rows, cols) => {
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols - 1; c++) {
+            const pair = [seating[r][c], seating[r][c + 1]];
+            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                return false; // 禁止ペアが隣接している場合
+            }
+        }
+    }
+
+    for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows - 1; r++) {
+            const pair = [seating[r][c], seating[r + 1][c]];
+            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                return false; // 禁止ペアが隣接している場合
+            }
+        }
+    }
+
+    return true; // 禁止ペアが隣接していない
+};
+
+// リトライ機構を追加
+const generateSeatingWithRetries = (students, rows, cols, forbiddenPairs, fixedSeats, maxRetries = 10) => {
+    let retries = 0;
+    while (retries < maxRetries) {
+        let studentNumbers = Array.from({ length: students }, (_, i) => i + 1);
+        let shuffled = shuffleArray(studentNumbers);
+
+        let seating = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+        // 固定席を配置
+        fixedSeats.forEach(seat => {
+            seating[seat.row][seat.col] = seat.student;
+            shuffled = shuffled.filter(student => student !== seat.student);
+        });
+
+        // 残りの席をシャッフル
+        let index = 0;
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (!seating[r][c] && index < shuffled.length) {
+                    seating[r][c] = shuffled[index++];
+                }
+            }
+        }
+
+        // 禁止ペアを避けるロジックを適用
+        if (avoidForbiddenPairs(seating, forbiddenPairs, rows, cols)) {
+            return seating; // 成功した場合
+        }
+
+        retries++;
+    }
+
+    throw new Error('最大リトライ回数を超えました。禁止ペアを避ける配置が見つかりませんでした。');
+};
+
 // 席替えAPI
 app.post("/shuffle", (req, res) => {
     const { students, rows, cols, forbiddenPairs, fixedSeats } = req.body;
-    let studentNumbers = Array.from({ length: students }, (_, i) => i + 1);
-    let shuffled = shuffleArray(studentNumbers);
+    try {
+        const seating = generateSeatingWithRetries(students, rows, cols, forbiddenPairs, fixedSeats);
+        const maxSeats = rows * cols;
+        const overflow = students > maxSeats ? Array.from({ length: students - maxSeats }, (_, i) => maxSeats + i + 1) : [];
 
-    let maxSeats = rows * cols;
-    let seating = Array.from({ length: rows }, () => Array(cols).fill(null));
-    let overflow = [];
-    let pairwiseConflict = false;
-
-    // 固定席を配置
-    fixedSeats.forEach(seat => {
-        seating[seat.row][seat.col] = seat.student;
-        shuffled = shuffled.filter(student => student !== seat.student);
-    });
-
-    // 残りの席をシャッフル
-    let index = 0;
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (!seating[r][c] && index < shuffled.length) {
-                seating[r][c] = shuffled[index++];
-            }
-        }
+        res.status(200).json({ seating, overflow, pairwiseConflict: false });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    // 溢れた生徒をoverflowに追加
-    overflow = shuffled.slice(index);
-
-    // 隣に座らせたくない生徒のペアが隣接しているかチェック
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols - 1; c++) {  // 横の隣接をチェック
-            const pair = [seating[r][c], seating[r][c + 1]];
-            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
-                pairwiseConflict = true;
-                break;
-            }
-        }
-        if (pairwiseConflict) break;
-    }
-
-    if (!pairwiseConflict) {
-        for (let c = 0; c < cols; c++) {
-            for (let r = 0; r < rows - 1; r++) {  // 縦の隣接をチェック
-                const pair = [seating[r][c], seating[r + 1][c]];
-                if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
-                    pairwiseConflict = true;
-                    break;
-                }
-            }
-            if (pairwiseConflict) break;
-        }
-    }
-
-    // 結果を返す
-    res.status(200).json({ seating, overflow, pairwiseConflict });
 });
 
 // 座席表を生成するAPI

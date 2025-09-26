@@ -148,8 +148,8 @@ describe('POST /shuffle', () => {
                 forbiddenPairs: [[1, 2]],
                 fixedSeats: [{ student: 1, row: 0, col: 0 }, { student: 2, row: 0, col: 1 }]
             });
-        expect(forbiddenPairsResponse.status).toBe(200);
-        expect(forbiddenPairsResponse.body.pairwiseConflict).toBe(true); // 隣接する禁止ペアがあることを確認
+        expect(forbiddenPairsResponse.status).toBe(500); // ステータスコードが500であることを確認
+        expect(forbiddenPairsResponse.body.error).toBe('最大リトライ回数を超えました。禁止ペアを避ける配置が見つかりませんでした。'); // エラーメッセージを確認
     });
 
     // 固定席が設定されている場合の席替えのテスト
