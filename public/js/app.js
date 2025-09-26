@@ -151,7 +151,7 @@ const app = Vue.createApp({
         async shuffleSeats() {
             this.isGeneratingImage = true; // 生成中フラグを立てる
             try {
-                const response = await fetch("/shuffle", {
+                const response = await fetch("/api/shuffle", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -180,12 +180,12 @@ const app = Vue.createApp({
                     // 現在の座席情報を取得
                     const currentSeating = this.seating;
 
-                    const imageResponse = await fetch("/generate-image", {
+                    const imageResponse = await fetch("/api/generate-image", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ seating: currentSeating })
+                        body: JSON.stringify({ seating: currentSeating, rows: this.rows, cols: this.cols })
                     });
 
                     if (!imageResponse.ok) {
