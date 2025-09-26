@@ -8,16 +8,19 @@
     "test": "vitest run",
     "start": "node server.mjs"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "canvas": "^3.1.0",
-    "dotenv": "^8.2.0",
+    "canvas": "^3.2.0",
+    "dotenv": "^17.2.2",
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "supertest": "^7.0.0",
+    "supertest": "^7.1.4",
     "vitest": "^3.0.4"
   }
 }
