@@ -1,12 +1,38 @@
-import { expect, describe, it } from 'vitest'
+import { expect, describe, it } from 'vitest';
 import request from 'supertest';
-import app from '../api.mjs'
+import app from '../app.js';
+
+// 禁止ペアの隣接チェックを関数化
+const checkPairwiseConflict = (seating, forbiddenPairs) => {
+    for (let r = 0; r < seating.length; r++) {
+        for (let c = 0; c < seating[r].length - 1; c++) {
+            const pair = [seating[r][c], seating[r][c + 1]];
+            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                return true;
+            }
+        }
+    }
+
+    for (let c = 0; c < seating[0].length; c++) {
+        for (let r = 0; r < seating.length - 1; r++) {
+            const pair = [seating[r][c], seating[r + 1][c]];
+            if (forbiddenPairs.some(([a, b]) => pair.includes(a) && pair.includes(b))) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+};
+
+// Using supertest with the Express app directly (request(app)) avoids
+// starting a real server and prevents port conflicts during parallel tests.
 
 describe('POST /shuffle', () => {
     // 基本的なエンドポイントのテスト
     it('should return a 200 status and a JSON object', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -22,7 +48,7 @@ describe('POST /shuffle', () => {
     // 固定席のテスト
     it('should handle fixed seats correctly', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -37,7 +63,7 @@ describe('POST /shuffle', () => {
     // 隣に座らせたくないペアのテスト
     it('should handle forbidden pairs correctly', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -47,42 +73,14 @@ describe('POST /shuffle', () => {
             });
         expect(response.status).toBe(200);
         const seating = response.body.seating;
-        let pairwiseConflict = false;
-
-        // 横方向の隣接をチェック
-        for (let r = 0; r < seating.length; r++) {
-            for (let c = 0; c < seating[r].length - 1; c++) {
-                const pair = [seating[r][c], seating[r][c + 1]];
-                if (pair.includes(1) && pair.includes(2)) {
-                    pairwiseConflict = true;
-                    break;
-                }
-            }
-            if (pairwiseConflict) break;
-        }
-
-        // 縦方向の隣接をチェック
-        if (!pairwiseConflict) {
-            for (let c = 0; c < seating[0].length; c++) {
-                for (let r = 0; r < seating.length - 1; r++) {
-                    const pair = [seating[r][c], seating[r + 1][c]];
-                    if (pair.includes(1) && pair.includes(2)) {
-                        pairwiseConflict = true;
-                        break;
-                    }
-                }
-                if (pairwiseConflict) break;
-            }
-        }
-
-        expect(pairwiseConflict).toBe(false);
+        expect(checkPairwiseConflict(seating, [[1, 2]])).toBe(false);
     });
 
     // 固定席と隣に座らせたくないペアの組み合わせのテスト
     it('should not allow forbidden pairs to be adjacent when using fixed seats', async () => {
         // テストリクエストを送信
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32, // 生徒の数
                 rows: 4, // 行数
@@ -93,42 +91,14 @@ describe('POST /shuffle', () => {
         expect(response.status).toBe(200); // ステータスコードが200であることを確認
 
         const seating = response.body.seating; // 席配置を取得
-        let pairwiseConflict = false; // 隣接する禁止ペアがあるかどうかのフラグ
-
-        // 横方向の隣接をチェック
-        for (let r = 0; r < seating.length; r++) {
-            for (let c = 0; c < seating[r].length - 1; c++) {
-                const pair = [seating[r][c], seating[r][c + 1]]; // 隣接するペアを取得
-                if (pair.includes(1) && pair.includes(2)) { // 禁止ペアが隣接しているかチェック
-                    pairwiseConflict = true;
-                    break;
-                }
-            }
-            if (pairwiseConflict) break;
-        }
-
-        // 縦方向の隣接をチェック
-        if (!pairwiseConflict) {
-            for (let c = 0; c < seating[0].length; c++) {
-                for (let r = 0; r < seating.length - 1; r++) {
-                    const pair = [seating[r][c], seating[r + 1][c]]; // 隣接するペアを取得
-                    if (pair.includes(1) && pair.includes(2)) { // 禁止ペアが隣接しているかチェック
-                        pairwiseConflict = true;
-                        break;
-                    }
-                }
-                if (pairwiseConflict) break;
-            }
-        }
-
-        expect(pairwiseConflict).toBe(false); // 禁止ペアが隣接していないことを確認
+        expect(checkPairwiseConflict(seating, [[1, 2]])).toBe(false); // 禁止ペアが隣接していないことを確認
     });
 
     // 固定席を設定した後に隣に座らせたくないペアを追加しようとした場合のテスト
     it('should not allow adding forbidden pairs that are already adjacent due to fixed seats', async () => {
         // 固定席を設定
         const fixedSeatsResponse = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -140,7 +110,7 @@ describe('POST /shuffle', () => {
 
         // 隣に座らせたくないペアを追加しようとする
         const forbiddenPairsResponse = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -155,7 +125,7 @@ describe('POST /shuffle', () => {
     // 固定席が設定されている場合の席替えのテスト
     it('should shuffle seats correctly with fixed seats', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -172,7 +142,7 @@ describe('POST /shuffle', () => {
     // 生徒数が席数を超える場合のテスト
     it('should handle overflow students correctly', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 40,
                 rows: 4,
@@ -190,7 +160,7 @@ describe('POST /shuffle', () => {
     // 固定席が設定されている場合の席替えのテスト（溢れた生徒がいる場合）
     it('should handle fixed seats correctly with overflow students', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 40,
                 rows: 4,
@@ -209,7 +179,7 @@ describe('POST /shuffle', () => {
     // 固定席が設定されている場合の席替えのテスト（隣に座らせたくないペアが隣接していないことを確認）
     it('should not allow forbidden pairs to be adjacent with fixed seats', async () => {
         const response = await request(app)
-            .post('/shuffle')
+            .post('/api/shuffle')
             .send({
                 students: 32,
                 rows: 4,
@@ -219,34 +189,6 @@ describe('POST /shuffle', () => {
             });
         expect(response.status).toBe(200);
         const seating = response.body.seating;
-        let pairwiseConflict = false;
-
-        // 横方向の隣接をチェック
-        for (let r = 0; r < seating.length; r++) {
-            for (let c = 0; c < seating[r].length - 1; c++) {
-                const pair = [seating[r][c], seating[r][c + 1]];
-                if (pair.includes(1) && pair.includes(2)) {
-                    pairwiseConflict = true;
-                    break;
-                }
-            }
-            if (pairwiseConflict) break;
-        }
-
-        // 縦方向の隣接をチェック
-        if (!pairwiseConflict) {
-            for (let c = 0; c < seating[0].length; c++) {
-                for (let r = 0; r < seating.length - 1; r++) {
-                    const pair = [seating[r][c], seating[r + 1][c]];
-                    if (pair.includes(1) && pair.includes(2)) {
-                        pairwiseConflict = true;
-                        break;
-                    }
-                }
-                if (pairwiseConflict) break;
-            }
-        }
-
-        expect(pairwiseConflict).toBe(false);
+        expect(checkPairwiseConflict(seating, [[1, 2]])).toBe(false);
     });
 });
