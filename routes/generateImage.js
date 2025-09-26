@@ -1,7 +1,10 @@
 import express from 'express';
-import { createCanvas } from 'canvas';
+import { createCanvas, registerFont } from 'canvas';
 
 const router = express.Router();
+
+// Register Japanese font
+registerFont('public/fonts/NotoSansJP-VariableFont_wght.ttf', { family: 'Noto Sans JP' });
 
 router.post('/generate-image', (req, res) => {
     const { seating, rows, cols } = req.body;
@@ -29,7 +32,7 @@ router.post('/generate-image', (req, res) => {
         ctx.lineWidth = 2;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = `${Math.max(12, Math.floor(CELL_SIZE * 0.35))}px sans-serif`;
+        ctx.font = `${Math.max(12, Math.floor(CELL_SIZE * 0.35))}px 'Noto Sans JP', sans-serif`;
 
         // Helper to draw a single seat cell
         function drawCell(r, c, value) {
